@@ -251,9 +251,9 @@ function Index() {
 
       {/* HORARIO */}
       <section id="horario" className="relative py-20 border-y-2" style={{ borderColor: INK, backgroundColor: "#fff" }}>
-        <div className="mx-auto max-w-6xl px-4 grid md:grid-cols-12 gap-10 items-center">
-          <div className="md:col-span-7">
-            <div style={display} className="text-sm uppercase tracking-[0.4em]">— Cuándo —</div>
+        <div className="mx-auto max-w-6xl px-4">
+          <div>
+            <div style={display} className="text-sm uppercase tracking-[0.4em]">— Horario —</div>
             <h2 style={display} className="text-6xl sm:text-8xl mt-2" >
               <span style={{ color: BLUE }}>Abierto</span> <span style={{ color: RED }}>casi siempre</span>
             </h2>
@@ -273,27 +273,6 @@ function Index() {
                   </span>
                 </div>
               ))}
-            </div>
-          </div>
-          <div className="md:col-span-5">
-            <div className="aspect-square border-2 p-6 flex flex-col items-center justify-center gap-4 text-center relative" style={{ borderColor: INK, backgroundColor: CREAM }}>
-              <Clock className="h-10 w-10" style={{ color: RED }} />
-              <p style={serif} className="italic text-xl max-w-xs">
-                "Llámanos, la sacamos del horno cuando llegues."
-              </p>
-              <div style={display} className="uppercase tracking-widest text-sm">— La casa —</div>
-              <div
-                className="absolute inset-x-0 -top-4 h-4"
-                style={{
-                  backgroundImage: `repeating-linear-gradient(45deg, ${RED} 0 8px, ${CREAM} 8px 16px)`,
-                }}
-              />
-              <div
-                className="absolute inset-x-0 -bottom-4 h-4"
-                style={{
-                  backgroundImage: `repeating-linear-gradient(45deg, ${BLUE} 0 8px, ${CREAM} 8px 16px)`,
-                }}
-              />
             </div>
           </div>
         </div>
