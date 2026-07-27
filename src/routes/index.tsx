@@ -1,5 +1,5 @@
 import { createFileRoute } from "@tanstack/react-router";
-import { Phone, MapPin, Facebook } from "lucide-react";
+import { Phone, MapPin, Facebook, Instagram } from "lucide-react";
 import logoAsset from "@/assets/super-pizza-logo-v2.png.asset.json";
 
 const logo = logoAsset.url;
@@ -295,16 +295,31 @@ function Index() {
             <a href="tel:+34962837771" className="block text-lg" style={serif}>96 283 77 71</a>
             <a href="tel:+34678969601" className="block text-lg" style={serif}>678 96 96 01</a>
           </Info>
-          <Info icon={<Facebook />} title="Facebook">
-            <a
-              href="https://www.facebook.com/Superpizza"
-              target="_blank"
-              rel="noreferrer"
-              className="text-lg underline underline-offset-4"
-              style={serif}
-            >
-              /Superpizza
-            </a>
+          <Info icon={<Facebook />} title="Redes">
+            <div className="flex items-center justify-center gap-2">
+              <Facebook className="h-5 w-5" style={{ color: BLUE }} />
+              <a
+                href="https://www.facebook.com/Superpizza"
+                target="_blank"
+                rel="noreferrer"
+                className="text-lg underline underline-offset-4"
+                style={serif}
+              >
+                /Superpizza
+              </a>
+            </div>
+            <div className="flex items-center justify-center gap-2 mt-2">
+              <Instagram className="h-5 w-5" style={{ color: RED }} />
+              <a
+                href="https://www.instagram.com/tavernessuperpizza"
+                target="_blank"
+                rel="noreferrer"
+                className="text-lg underline underline-offset-4"
+                style={serif}
+              >
+                tavernessuperpizza
+              </a>
+            </div>
           </Info>
         </div>
       </section>
