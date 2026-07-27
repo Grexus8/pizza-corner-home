@@ -114,34 +114,13 @@ function Index() {
       {/* Checkered top strip */}
       <Checkered className="h-6" />
 
-      {/* Nav */}
-      <header className="sticky top-6 z-30" style={{ backgroundColor: CREAM }}>
-        <div className="mx-auto flex max-w-6xl items-center justify-between px-4 py-4 border-b-2" style={{ borderColor: INK }}>
-          <a href="#top" className="flex items-center gap-3">
-            <img src={logo} alt="Super Pizza" className="h-12 w-auto" />
-          </a>
-          <nav className="hidden sm:flex gap-8 text-sm uppercase tracking-widest" style={display}>
-            <a href="#menu" className="hover:text-[color:var(--sp-red)]" style={{ ["--sp-red" as string]: RED }}>Carta</a>
-            <a href="#horario">Horario</a>
-            <a href="#contacto">Visítanos</a>
-          </nav>
-          <a
-            href="tel:+34962837771"
-            className="inline-flex items-center gap-2 rounded-none px-4 py-2 text-sm font-bold uppercase tracking-wider text-white"
-            style={{ backgroundColor: RED, ...display, letterSpacing: "0.1em" }}
-          >
-            <Phone className="h-4 w-4" /> 96 283 77 71
-          </a>
-        </div>
-      </header>
-
       {/* HERO */}
       <section id="top" className="relative overflow-hidden">
         <div className="mx-auto max-w-6xl px-4 pt-16 pb-24 sm:pt-24 sm:pb-32 grid gap-10 md:grid-cols-12 items-center">
           <div className="md:col-span-7">
             <div className="flex items-center gap-3 mb-6">
               <span className="h-[2px] w-10" style={{ backgroundColor: RED }} />
-              <span style={display} className="text-sm tracking-[0.3em]">Tavernes de Valldigna · Desde siempre</span>
+              <span style={display} className="text-sm tracking-[0.3em]">Tavernes de Valldigna</span>
             </div>
             <h1
               style={{ ...display, lineHeight: 0.9 }}
@@ -152,7 +131,7 @@ function Index() {
               <span style={{ color: BLUE }}>PIZZA</span>
             </h1>
             <p style={serif} className="mt-6 max-w-lg text-xl italic text-stone-700">
-              "Tomate, queso y orégano. El resto — como a ti te guste."
+              "Hacemos la pizza a tu gusto"
             </p>
             <div className="mt-8 flex flex-wrap gap-3">
               <a
