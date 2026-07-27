@@ -1,6 +1,6 @@
 import { createFileRoute } from "@tanstack/react-router";
-import { Phone, MapPin, Clock, Facebook } from "lucide-react";
-import logoAsset from "@/assets/super-pizza-logo.png.asset.json";
+import { Phone, MapPin, Facebook } from "lucide-react";
+import logoAsset from "@/assets/super-pizza-logo-v2.png.asset.json";
 
 const logo = logoAsset.url;
 
@@ -114,34 +114,13 @@ function Index() {
       {/* Checkered top strip */}
       <Checkered className="h-6" />
 
-      {/* Nav */}
-      <header className="sticky top-6 z-30" style={{ backgroundColor: CREAM }}>
-        <div className="mx-auto flex max-w-6xl items-center justify-between px-4 py-4 border-b-2" style={{ borderColor: INK }}>
-          <a href="#top" className="flex items-center gap-3">
-            <img src={logo} alt="Super Pizza" className="h-12 w-auto" />
-          </a>
-          <nav className="hidden sm:flex gap-8 text-sm uppercase tracking-widest" style={display}>
-            <a href="#menu" className="hover:text-[color:var(--sp-red)]" style={{ ["--sp-red" as string]: RED }}>Carta</a>
-            <a href="#horario">Horario</a>
-            <a href="#contacto">Visítanos</a>
-          </nav>
-          <a
-            href="tel:+34962837771"
-            className="inline-flex items-center gap-2 rounded-none px-4 py-2 text-sm font-bold uppercase tracking-wider text-white"
-            style={{ backgroundColor: RED, ...display, letterSpacing: "0.1em" }}
-          >
-            <Phone className="h-4 w-4" /> 96 283 77 71
-          </a>
-        </div>
-      </header>
-
       {/* HERO */}
       <section id="top" className="relative overflow-hidden">
         <div className="mx-auto max-w-6xl px-4 pt-16 pb-24 sm:pt-24 sm:pb-32 grid gap-10 md:grid-cols-12 items-center">
           <div className="md:col-span-7">
             <div className="flex items-center gap-3 mb-6">
               <span className="h-[2px] w-10" style={{ backgroundColor: RED }} />
-              <span style={display} className="text-sm tracking-[0.3em]">Tavernes de Valldigna · Desde siempre</span>
+              <span style={display} className="text-sm tracking-[0.3em]">Tavernes de Valldigna</span>
             </div>
             <h1
               style={{ ...display, lineHeight: 0.9 }}
@@ -152,7 +131,7 @@ function Index() {
               <span style={{ color: BLUE }}>PIZZA</span>
             </h1>
             <p style={serif} className="mt-6 max-w-lg text-xl italic text-stone-700">
-              "Tomate, queso y orégano. El resto — como a ti te guste."
+              "Hacemos la pizza a tu gusto"
             </p>
             <div className="mt-8 flex flex-wrap gap-3">
               <a
@@ -200,18 +179,12 @@ function Index() {
         <Checkered className="h-5" />
       </section>
 
-      {/* Strip of features */}
+      {/* Strip of stars */}
       <section className="border-b-2" style={{ backgroundColor: BLUE, color: CREAM, borderColor: INK }}>
-        <div className="mx-auto max-w-6xl px-4 py-6 grid grid-cols-1 sm:grid-cols-3 gap-4 text-center">
-          {[
-            "Al gusto del cliente",
-            "Masa hecha en casa",
-            "Para llevar y comer aquí",
-          ].map((t) => (
-            <div key={t} style={display} className="uppercase tracking-[0.25em] text-sm sm:text-base">
-              ★ {t} ★
-            </div>
-          ))}
+        <div className="mx-auto max-w-6xl px-4 py-6 flex items-center justify-center gap-8" style={display}>
+          <span className="text-2xl sm:text-3xl">★</span>
+          <span className="text-2xl sm:text-3xl">★</span>
+          <span className="text-2xl sm:text-3xl">★</span>
         </div>
       </section>
 
@@ -278,9 +251,9 @@ function Index() {
 
       {/* HORARIO */}
       <section id="horario" className="relative py-20 border-y-2" style={{ borderColor: INK, backgroundColor: "#fff" }}>
-        <div className="mx-auto max-w-6xl px-4 grid md:grid-cols-12 gap-10 items-center">
-          <div className="md:col-span-7">
-            <div style={display} className="text-sm uppercase tracking-[0.4em]">— Cuándo —</div>
+        <div className="mx-auto max-w-6xl px-4">
+          <div>
+            <div style={display} className="text-sm uppercase tracking-[0.4em]">— Horario —</div>
             <h2 style={display} className="text-6xl sm:text-8xl mt-2" >
               <span style={{ color: BLUE }}>Abierto</span> <span style={{ color: RED }}>casi siempre</span>
             </h2>
@@ -300,27 +273,6 @@ function Index() {
                   </span>
                 </div>
               ))}
-            </div>
-          </div>
-          <div className="md:col-span-5">
-            <div className="aspect-square border-2 p-6 flex flex-col items-center justify-center gap-4 text-center relative" style={{ borderColor: INK, backgroundColor: CREAM }}>
-              <Clock className="h-10 w-10" style={{ color: RED }} />
-              <p style={serif} className="italic text-xl max-w-xs">
-                "Llámanos, la sacamos del horno cuando llegues."
-              </p>
-              <div style={display} className="uppercase tracking-widest text-sm">— La casa —</div>
-              <div
-                className="absolute inset-x-0 -top-4 h-4"
-                style={{
-                  backgroundImage: `repeating-linear-gradient(45deg, ${RED} 0 8px, ${CREAM} 8px 16px)`,
-                }}
-              />
-              <div
-                className="absolute inset-x-0 -bottom-4 h-4"
-                style={{
-                  backgroundImage: `repeating-linear-gradient(45deg, ${BLUE} 0 8px, ${CREAM} 8px 16px)`,
-                }}
-              />
             </div>
           </div>
         </div>
