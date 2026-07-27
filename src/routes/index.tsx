@@ -1,5 +1,5 @@
 import { createFileRoute } from "@tanstack/react-router";
-import { Phone, MapPin, Facebook } from "lucide-react";
+import { Phone, MapPin, Facebook, Instagram } from "lucide-react";
 import logoAsset from "@/assets/super-pizza-logo-v2.png.asset.json";
 
 const logo = logoAsset.url;
