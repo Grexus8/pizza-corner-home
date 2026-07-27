@@ -179,18 +179,12 @@ function Index() {
         <Checkered className="h-5" />
       </section>
 
-      {/* Strip of features */}
+      {/* Strip of stars */}
       <section className="border-b-2" style={{ backgroundColor: BLUE, color: CREAM, borderColor: INK }}>
-        <div className="mx-auto max-w-6xl px-4 py-6 grid grid-cols-1 sm:grid-cols-3 gap-4 text-center">
-          {[
-            "Al gusto del cliente",
-            "Masa hecha en casa",
-            "Para llevar y comer aquí",
-          ].map((t) => (
-            <div key={t} style={display} className="uppercase tracking-[0.25em] text-sm sm:text-base">
-              ★ {t} ★
-            </div>
-          ))}
+        <div className="mx-auto max-w-6xl px-4 py-6 flex items-center justify-center gap-8" style={display}>
+          <span className="text-2xl sm:text-3xl">★</span>
+          <span className="text-2xl sm:text-3xl">★</span>
+          <span className="text-2xl sm:text-3xl">★</span>
         </div>
       </section>
 
