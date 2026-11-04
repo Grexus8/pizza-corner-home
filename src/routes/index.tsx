@@ -1,5 +1,6 @@
+import { useEffect, useRef, useState } from "react";
 import { createFileRoute } from "@tanstack/react-router";
-import { Phone, MapPin, Facebook, Instagram } from "lucide-react";
+import { Phone, MapPin, Facebook, Instagram, ArrowUp } from "lucide-react";
 import logoAsset from "@/assets/super-pizza-logo-v2.png.asset.json";
 
 const logo = logoAsset.url;
@@ -108,9 +109,192 @@ const BLUE = "#1e3a8a";
 const CREAM = "#fdf6e3";
 const INK = "#1a1a1a";
 
+const NAV = [
+  { href: "#menu", label: "Carta" },
+  { href: "#horario", label: "Horario" },
+  { href: "#contacto", label: "Contacto" },
+];
+
+// [días (getDay), etiqueta, horas, cierre en minutos desde 00:00 | null si cerrado]
+const HORARIO: { days: number[]; label: string; hours: string; close: number | null }[] = [
+  { days: [1, 2], label: "Lunes · Martes", hours: "Cerrado", close: null },
+  { days: [3, 4, 0], label: "Miércoles · Jueves · Domingo", hours: "18:00 – 23:00", close: 23 * 60 },
+  { days: [5, 6], label: "Viernes · Sábado", hours: "18:00 – 23:30", close: 23 * 60 + 30 },
+];
+
+/** Marks an element as visible once it scrolls into view. */
+function useInView<T extends HTMLElement>() {
+  const ref = useRef<T>(null);
+  const [seen, setSeen] = useState(false);
+  useEffect(() => {
+    const el = ref.current;
+    if (!el) return;
+    if (typeof IntersectionObserver === "undefined") {
+      setSeen(true);
+      return;
+    }
+    const io = new IntersectionObserver(
+      ([entry]) => {
+        if (entry.isIntersecting) {
+          setSeen(true);
+          io.disconnect();
+        }
+      },
+      { threshold: 0.15, rootMargin: "0px 0px -8% 0px" },
+    );
+    io.observe(el);
+    return () => io.disconnect();
+  }, []);
+  return [ref, seen] as const;
+}
+
+function Reveal({
+  children,
+  delay = 0,
+  className = "",
+  style,
+  as: Tag = "div",
+}: {
+  children: React.ReactNode;
+  delay?: number;
+  className?: string;
+  style?: React.CSSProperties;
+  as?: "div" | "li" | "section";
+}) {
+  const [ref, seen] = useInView<HTMLElement>();
+  return (
+    <Tag
+      ref={ref as never}
+      className={`sp-reveal ${seen ? "is-in" : ""} ${className}`}
+      style={{ ...style, ["--d" as string]: `${delay}ms` }}
+    >
+      {children}
+    </Tag>
+  );
+}
+
+/** Counts from 0 to `to` once visible. */
+function CountUp({ to }: { to: number }) {
+  const [ref, seen] = useInView<HTMLSpanElement>();
+  const [n, setN] = useState(to);
+  useEffect(() => {
+    if (!seen) return;
+    if (window.matchMedia("(prefers-reduced-motion: reduce)").matches) return;
+    const start = performance.now();
+    const dur = 1200;
+    let raf = 0;
+    const tick = (t: number) => {
+      const p = Math.min((t - start) / dur, 1);
+      setN(Math.round(to * (1 - Math.pow(1 - p, 3))));
+      if (p < 1) raf = requestAnimationFrame(tick);
+    };
+    setN(0);
+    raf = requestAnimationFrame(tick);
+    return () => cancelAnimationFrame(raf);
+  }, [seen, to]);
+  return <span ref={ref}>{n}</span>;
+}
+
+function Nav({ progress, scrolled }: { progress: number; scrolled: boolean }) {
+  return (
+    <header
+      className="sp-nav fixed inset-x-0 top-0 z-50"
+      style={{
+        backgroundColor: scrolled ? `${CREAM}ee` : "transparent",
+        backdropFilter: scrolled ? "blur(10px)" : "none",
+        boxShadow: scrolled ? `0 2px 0 ${INK}` : "none",
+        transform: scrolled ? "translateY(0)" : "translateY(-100%)",
+      }}
+    >
+      <div className="mx-auto max-w-6xl px-4 h-14 flex items-center justify-between">
+        <a href="#top" className="flex items-center gap-2" aria-label="Super Pizza, inicio">
+          <img src={logo} alt="" className="h-9 w-auto" />
+          <span style={display} className="text-xl tracking-widest">
+            <span style={{ color: RED }}>SUPER</span> <span style={{ color: BLUE }}>PIZZA</span>
+          </span>
+        </a>
+        <nav className="flex items-center gap-4 sm:gap-8" style={{ ...display, letterSpacing: "0.15em" }}>
+          {NAV.map((l) => (
+            <a key={l.href} href={l.href} className="text-sm sm:text-base uppercase">
+              {l.label}
+            </a>
+          ))}
+        </nav>
+      </div>
+      <div className="h-[3px]">
+        <div
+          className="h-full origin-left"
+          style={{ backgroundColor: RED, transform: `scaleX(${progress})` }}
+        />
+      </div>
+    </header>
+  );
+}
+
+function OpenNow() {
+  const [state, setState] = useState<{ open: boolean; today: number } | null>(null);
+  useEffect(() => {
+    const compute = () => {
+      const d = new Date();
+      const mins = d.getHours() * 60 + d.getMinutes();
+      const slot = HORARIO.find((h) => h.days.includes(d.getDay()))!;
+      setState({
+        today: d.getDay(),
+        open: slot.close !== null && mins >= 18 * 60 && mins < slot.close,
+      });
+    };
+    compute();
+    const id = setInterval(compute, 60_000);
+    return () => clearInterval(id);
+  }, []);
+  if (!state) return null;
+  return (
+    <span
+      className="inline-flex items-center gap-2 px-3 py-1 text-sm uppercase border-2"
+      style={{ ...display, letterSpacing: "0.15em", borderColor: INK, backgroundColor: "#fff" }}
+    >
+      {state.open ? (
+        <>
+          <span className="sp-live" /> Abierto ahora
+        </>
+      ) : (
+        <>
+          <span className="inline-block h-[10px] w-[10px] rounded-full" style={{ backgroundColor: RED }} />
+          Cerrado ahora
+        </>
+      )}
+    </span>
+  );
+}
+
 function Index() {
+  const [progress, setProgress] = useState(0);
+  const [scrolled, setScrolled] = useState(false);
+  const [today, setToday] = useState<number | null>(null);
+
+  useEffect(() => {
+    setToday(new Date().getDay());
+    let raf = 0;
+    const onScroll = () => {
+      cancelAnimationFrame(raf);
+      raf = requestAnimationFrame(() => {
+        const max = document.documentElement.scrollHeight - window.innerHeight;
+        setProgress(max > 0 ? window.scrollY / max : 0);
+        setScrolled(window.scrollY > 320);
+      });
+    };
+    onScroll();
+    window.addEventListener("scroll", onScroll, { passive: true });
+    return () => {
+      window.removeEventListener("scroll", onScroll);
+      cancelAnimationFrame(raf);
+    };
+  }, []);
+
   return (
     <div style={{ ...body, backgroundColor: CREAM, color: INK }} className="min-h-screen">
+      <Nav progress={progress} scrolled={scrolled} />
+
       {/* Checkered top strip */}
       <Checkered className="h-6" />
 
@@ -118,7 +302,7 @@ function Index() {
       <section id="top" className="relative overflow-hidden">
         <div className="mx-auto max-w-6xl px-4 pt-16 pb-24 sm:pt-24 sm:pb-32 grid gap-10 md:grid-cols-12 items-center">
           <div className="md:col-span-7">
-            <div className="flex items-center gap-3 mb-6">
+            <div className="sp-rise flex items-center gap-3 mb-6" style={{ ["--d" as string]: "0ms" }}>
               <span className="h-[2px] w-10" style={{ backgroundColor: RED }} />
               <span style={display} className="text-sm tracking-[0.3em]">Tavernes de Valldigna</span>
             </div>
@@ -126,51 +310,46 @@ function Index() {
               style={{ ...display, lineHeight: 0.9 }}
               className="text-[15vw] sm:text-[9rem] md:text-[11rem]"
             >
-              <span style={{ color: RED }}>SUPER</span>
+              <span className="sp-rise inline-block" style={{ color: RED, ["--d" as string]: "100ms" }}>SUPER</span>
               <br />
-              <span style={{ color: BLUE }}>PIZZA</span>
+              <span className="sp-rise inline-block" style={{ color: BLUE, ["--d" as string]: "250ms" }}>PIZZA</span>
             </h1>
-            <p style={serif} className="mt-6 max-w-lg text-xl italic text-stone-700">
+            <p style={{ ...serif, ["--d" as string]: "450ms" }} className="sp-rise mt-6 max-w-lg text-xl italic text-stone-700">
               "Hacemos la pizza a tu gusto"
             </p>
-            <div className="mt-8 flex flex-wrap gap-3">
+            <div className="sp-rise mt-8 flex flex-wrap items-center gap-3" style={{ ["--d" as string]: "600ms" }}>
               <a
                 href="#menu"
-                className="inline-flex items-center px-6 py-3 text-sm uppercase tracking-widest text-white"
+                className="sp-btn inline-flex items-center px-6 py-3 text-sm uppercase tracking-widest text-white"
                 style={{ backgroundColor: INK, ...display, letterSpacing: "0.15em" }}
               >
                 Ver la carta →
               </a>
               <a
                 href="tel:+34678969601"
-                className="inline-flex items-center px-6 py-3 text-sm uppercase tracking-widest border-2"
+                className="sp-btn inline-flex items-center px-6 py-3 text-sm uppercase tracking-widest border-2"
                 style={{ borderColor: INK, ...display, letterSpacing: "0.15em" }}
               >
                 678 96 96 01
               </a>
+              <OpenNow />
             </div>
           </div>
 
-          <div className="md:col-span-5 relative">
-            <div className="relative">
-              <div
-                className="absolute -inset-6 -z-10"
-                style={{
-                  backgroundImage: `repeating-conic-gradient(${RED} 0 25%, ${CREAM} 0 50%)`,
-                  backgroundSize: "40px 40px",
-                  opacity: 0.9,
-                }}
-              />
+          <div className="sp-rise md:col-span-5 relative" style={{ ["--d" as string]: "300ms" }}>
+            <div className="relative sp-float">
               <div className="bg-[color:var(--cream)] p-8 border-2 relative" style={{ ["--cream" as string]: CREAM, borderColor: INK }}>
-                <img src={logo} alt="Logo Super Pizza" className="w-full h-auto" />
+                <img src={logo} alt="Logo Super Pizza" className="w-full h-auto" fetchPriority="high" />
               </div>
-              <div
-                className="absolute -bottom-6 -right-6 rounded-full flex items-center justify-center text-white text-center p-6 rotate-[8deg] shadow-lg"
-                style={{ backgroundColor: BLUE, width: 140, height: 140, ...display, lineHeight: 1 }}
-              >
-                <div>
-                  <div className="text-4xl">21</div>
-                  <div className="text-xs tracking-widest mt-1">PIZZAS DE LA CASA</div>
+              <div className="sp-pop absolute -bottom-6 -right-6">
+                <div
+                  className="sp-wobble rounded-full flex items-center justify-center text-white text-center p-6 shadow-lg"
+                  style={{ backgroundColor: BLUE, width: 140, height: 140, ...display, lineHeight: 1 }}
+                >
+                  <div>
+                    <div className="text-4xl"><CountUp to={21} /></div>
+                    <div className="text-xs tracking-widest mt-1">PIZZAS DE LA CASA</div>
+                  </div>
                 </div>
               </div>
             </div>
@@ -180,17 +359,28 @@ function Index() {
       </section>
 
       {/* Strip of stars */}
-      <section className="border-b-2" style={{ backgroundColor: BLUE, color: CREAM, borderColor: INK }}>
-        <div className="mx-auto max-w-6xl px-4 py-6 flex items-center justify-center gap-8" style={display}>
-          <span className="text-2xl sm:text-3xl">★</span>
-          <span className="text-2xl sm:text-3xl">★</span>
-          <span className="text-2xl sm:text-3xl">★</span>
+      <section
+        className="sp-marquee overflow-hidden border-b-2 py-4"
+        style={{ backgroundColor: BLUE, color: CREAM, borderColor: INK }}
+        aria-label="Pizzas a tu gusto, ensaladas, pastas y bebidas"
+      >
+        <div className="sp-marquee-track" style={display} aria-hidden="true">
+          {[0, 1].map((k) => (
+            <div key={k} className="flex shrink-0 items-center">
+              {["Pizzas a tu gusto", "Ensaladas", "Pastas", "Para picar", "Bebidas frías", "Tavernes de Valldigna"].map((t) => (
+                <span key={t} className="flex items-center text-2xl sm:text-3xl uppercase tracking-[0.15em]">
+                  {t}
+                  <span className="mx-6 sm:mx-10" style={{ color: "#f5c542" }}>★</span>
+                </span>
+              ))}
+            </div>
+          ))}
         </div>
       </section>
 
       {/* MENU */}
       <section id="menu" className="mx-auto max-w-6xl px-4 py-20">
-        <div className="flex items-end justify-between flex-wrap gap-4 mb-10">
+        <Reveal className="flex items-end justify-between flex-wrap gap-4 mb-10">
           <div>
             <div style={display} className="text-sm uppercase tracking-[0.4em]" >— La Carta —</div>
             <h2 style={display} className="text-6xl sm:text-8xl mt-2" >
@@ -200,9 +390,10 @@ function Index() {
           <p style={serif} className="italic text-stone-600 max-w-sm text-lg">
             Todas con tomate, queso y orégano. Ingredientes extra: +0,50 € individual · +1 € familiar.
           </p>
-        </div>
+        </Reveal>
 
         {/* Pizzas list */}
+        <Reveal>
         <div className="border-2" style={{ borderColor: INK, backgroundColor: "#fff" }}>
           <div className="hidden sm:grid grid-cols-12 gap-4 px-6 py-3 border-b-2" style={{ borderColor: INK, backgroundColor: RED, color: "#fff", ...display, letterSpacing: "0.15em" }}>
             <div className="col-span-7 uppercase text-sm">Pizza</div>
@@ -212,13 +403,15 @@ function Index() {
           </div>
           <ul>
             {pizzas.map((p, idx) => (
-              <li
+              <Reveal
+                as="li"
                 key={p.n}
-                className="grid grid-cols-12 gap-2 sm:gap-4 px-4 sm:px-6 py-4 items-baseline"
+                delay={(idx % 4) * 60}
+                className="sp-row grid grid-cols-12 gap-2 sm:gap-4 px-4 sm:px-6 py-4 items-baseline"
                 style={{ borderBottom: idx === pizzas.length - 1 ? "none" : `1px dashed ${INK}33` }}
               >
                 <div className="col-span-12 sm:col-span-7 flex gap-3">
-                  <span style={display} className="text-2xl" >{String(p.n).padStart(2, "0")}</span>
+                  <span style={display} className="sp-num text-2xl" >{String(p.n).padStart(2, "0")}</span>
                   <div>
                     <div style={serif} className="text-xl font-semibold" >{p.name}</div>
                     {p.desc && <div className="text-sm text-stone-500 italic" style={serif}>{p.desc}</div>}
@@ -227,23 +420,24 @@ function Index() {
                 <PriceCell label="Porción" value={p.porcion} />
                 <PriceCell label="Individual" value={p.ind} span={2} />
                 <PriceCell label="Familiar" value={p.fam} span={2} bold />
-              </li>
+              </Reveal>
             ))}
           </ul>
         </div>
+        </Reveal>
 
         {/* Otras secciones */}
         <div className="mt-16 grid gap-10 md:grid-cols-2">
-          <MenuBlock title="Ensaladas" subtitle="Con salsa rosa en sobres">
+          <MenuBlock title="Ensaladas" subtitle="Con salsa rosa en sobres" delay={0}>
             {ensaladas.map((i) => <Line key={i.name} {...i} />)}
           </MenuBlock>
-          <MenuBlock title="Para picar">
+          <MenuBlock title="Para picar" delay={100}>
             {picar.map((i) => <Line key={i.name} {...i} />)}
           </MenuBlock>
-          <MenuBlock title="Pastas">
+          <MenuBlock title="Pastas" delay={0}>
             {pastas.map((i) => <Line key={i.name} {...i} />)}
           </MenuBlock>
-          <MenuBlock title="Bebidas">
+          <MenuBlock title="Bebidas" delay={100}>
             {bebidas.map((i) => <Line key={i.name} {...i} />)}
           </MenuBlock>
         </div>
@@ -252,57 +446,71 @@ function Index() {
       {/* HORARIO */}
       <section id="horario" className="relative py-20 border-y-2" style={{ borderColor: INK, backgroundColor: "#fff" }}>
         <div className="mx-auto max-w-6xl px-4">
-          <div>
+          <Reveal>
             <div style={display} className="text-sm uppercase tracking-[0.4em]">— Horario —</div>
             <h2 style={display} className="text-6xl sm:text-8xl mt-2" >
               <span style={{ color: BLUE }}>Abierto</span> <span style={{ color: RED }}>casi siempre</span>
             </h2>
-            <div className="mt-8 divide-y-2" style={{ borderColor: INK }}>
-              {[
-                ["Lunes · Martes", "Cerrado", true],
-                ["Miércoles · Jueves · Domingo", "18:00 – 23:00", false],
-                ["Viernes · Sábado", "18:00 – 23:30", false],
-              ].map(([day, hours, closed]) => (
-                <div key={day as string} className="flex items-center justify-between py-4">
-                  <span style={serif} className="text-xl sm:text-2xl">{day}</span>
-                  <span
-                    style={{ ...display, letterSpacing: "0.15em", color: closed ? RED : INK }}
-                    className="text-lg sm:text-2xl uppercase"
-                  >
-                    {hours}
+          </Reveal>
+          <div className="mt-8 divide-y-2" style={{ borderColor: INK }}>
+            {HORARIO.map((h, i) => {
+              const isToday = today !== null && h.days.includes(today);
+              return (
+                <Reveal
+                  key={h.label}
+                  delay={i * 100}
+                  className="flex items-center justify-between gap-4 py-4 px-3 -mx-3 transition-colors duration-300"
+                  style={{ backgroundColor: isToday ? `${CREAM}` : "transparent" }}
+                >
+                  <span style={serif} className="text-xl sm:text-2xl flex items-center gap-3">
+                    {h.label}
+                    {isToday && (
+                      <span
+                        className="text-xs px-2 py-0.5 text-white"
+                        style={{ ...display, letterSpacing: "0.2em", backgroundColor: BLUE }}
+                      >
+                        HOY
+                      </span>
+                    )}
                   </span>
-                </div>
-              ))}
-            </div>
+                  <span
+                    style={{ ...display, letterSpacing: "0.15em", color: h.close === null ? RED : INK }}
+                    className="text-lg sm:text-2xl uppercase whitespace-nowrap"
+                  >
+                    {h.hours}
+                  </span>
+                </Reveal>
+              );
+            })}
           </div>
         </div>
       </section>
 
       {/* CONTACTO */}
       <section id="contacto" className="mx-auto max-w-6xl px-4 py-20">
-        <div className="text-center mb-12">
+        <Reveal className="text-center mb-12">
           <div style={display} className="text-sm uppercase tracking-[0.4em]">— Dónde —</div>
           <h2 style={display} className="text-6xl sm:text-8xl mt-2">
             <span style={{ color: RED }}>Ven</span> <span style={{ color: BLUE }}>a vernos</span>
           </h2>
-        </div>
+        </Reveal>
         <div className="grid gap-6 md:grid-cols-3">
-          <Info icon={<MapPin />} title="Dirección">
+          <Info icon={<MapPin />} title="Dirección" delay={0}>
             <div style={serif} className="text-lg">C/ L'u i el dos s/n</div>
             <div style={serif} className="text-lg">46760 Tavernes de Valldigna</div>
           </Info>
-          <Info icon={<Phone />} title="Teléfono">
-            <a href="tel:+34962837771" className="block text-lg" style={serif}>96 283 77 71</a>
-            <a href="tel:+34678969601" className="block text-lg" style={serif}>678 96 96 01</a>
+          <Info icon={<Phone />} title="Teléfono" delay={120}>
+            <a href="tel:+34962837771" className="sp-link block text-lg" style={serif}>96 283 77 71</a>
+            <a href="tel:+34678969601" className="sp-link block text-lg" style={serif}>678 96 96 01</a>
           </Info>
-          <Info icon={<Facebook />} title="Redes">
+          <Info icon={<Facebook />} title="Redes" delay={240}>
             <div className="flex items-center justify-center gap-2">
               <Facebook className="h-5 w-5" style={{ color: BLUE }} />
               <a
                 href="https://www.facebook.com/Superpizza"
                 target="_blank"
                 rel="noreferrer"
-                className="text-lg underline underline-offset-4"
+                className="sp-link text-lg"
                 style={serif}
               >
                 /Superpizza
@@ -314,7 +522,7 @@ function Index() {
                 href="https://www.instagram.com/tavernessuperpizza"
                 target="_blank"
                 rel="noreferrer"
-                className="text-lg underline underline-offset-4"
+                className="sp-link text-lg"
                 style={serif}
               >
                 tavernessuperpizza
@@ -338,6 +546,23 @@ function Index() {
           <div className="text-sm opacity-70" style={serif}>Hecho al gusto del cliente 🍕</div>
         </div>
       </footer>
+
+      <button
+        type="button"
+        aria-label="Volver arriba"
+        onClick={() => window.scrollTo({ top: 0, behavior: "smooth" })}
+        className="sp-btn fixed bottom-5 right-5 z-40 flex h-12 w-12 items-center justify-center border-2 text-white"
+        style={{
+          backgroundColor: RED,
+          borderColor: INK,
+          opacity: scrolled ? 1 : 0,
+          transform: scrolled ? undefined : "translateY(16px) scale(0.8)",
+          pointerEvents: scrolled ? "auto" : "none",
+        }}
+        tabIndex={scrolled ? 0 : -1}
+      >
+        <ArrowUp className="h-5 w-5" />
+      </button>
     </div>
   );
 }
@@ -382,24 +607,38 @@ function PriceCell({
   );
 }
 
-function MenuBlock({ title, subtitle, children }: { title: string; subtitle?: string; children: React.ReactNode }) {
+function MenuBlock({
+  title,
+  subtitle,
+  delay = 0,
+  children,
+}: {
+  title: string;
+  subtitle?: string;
+  delay?: number;
+  children: React.ReactNode;
+}) {
   return (
-    <div className="border-2 p-6 sm:p-8" style={{ borderColor: INK, backgroundColor: "#fff" }}>
+    <Reveal
+      delay={delay}
+      className="sp-card border-2 p-6 sm:p-8"
+      style={{ borderColor: INK, backgroundColor: "#fff" }}
+    >
       <div className="flex items-baseline justify-between mb-4">
         <h3 style={display} className="text-3xl sm:text-4xl" >
           <span style={{ color: BLUE }}>{title}</span>
         </h3>
         {subtitle && <span style={serif} className="italic text-sm text-stone-500">{subtitle}</span>}
       </div>
-      <div className="h-[2px] w-16 mb-4" style={{ backgroundColor: RED }} />
+      <div className="sp-bar h-[2px] w-16 mb-4" style={{ backgroundColor: RED }} />
       <ul className="space-y-3">{children}</ul>
-    </div>
+    </Reveal>
   );
 }
 
 function Line({ name, desc, price }: { name: string; desc?: string; price: string }) {
   return (
-    <li className="flex items-baseline gap-3">
+    <li className="sp-line flex items-baseline gap-3">
       <span style={serif} className="text-lg">
         {name}
         {desc && <span className="italic text-stone-500 text-sm"> — {desc}</span>}
@@ -412,11 +651,25 @@ function Line({ name, desc, price }: { name: string; desc?: string; price: strin
   );
 }
 
-function Info({ icon, title, children }: { icon: React.ReactNode; title: string; children: React.ReactNode }) {
+function Info({
+  icon,
+  title,
+  delay = 0,
+  children,
+}: {
+  icon: React.ReactNode;
+  title: string;
+  delay?: number;
+  children: React.ReactNode;
+}) {
   return (
-    <div className="border-2 p-6 text-center" style={{ borderColor: INK, backgroundColor: "#fff" }}>
+    <Reveal
+      delay={delay}
+      className="sp-card border-2 p-6 text-center"
+      style={{ borderColor: INK, backgroundColor: "#fff" }}
+    >
       <div
-        className="mx-auto mb-4 flex h-14 w-14 items-center justify-center rounded-full text-white [&_svg]:h-6 [&_svg]:w-6"
+        className="sp-icon mx-auto mb-4 flex h-14 w-14 items-center justify-center rounded-full text-white [&_svg]:h-6 [&_svg]:w-6"
         style={{ backgroundColor: RED }}
       >
         {icon}
@@ -424,6 +677,6 @@ function Info({ icon, title, children }: { icon: React.ReactNode; title: string;
       <h3 style={display} className="text-2xl uppercase tracking-widest" >{title}</h3>
       <div className="h-[2px] w-10 mx-auto my-3" style={{ backgroundColor: BLUE }} />
       <div>{children}</div>
-    </div>
+    </Reveal>
   );
 }
