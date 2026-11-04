@@ -1,9 +1,9 @@
 import { useEffect, useRef, useState } from "react";
 import { createFileRoute } from "@tanstack/react-router";
 import { Phone, MapPin, Facebook, Instagram, ArrowUp } from "lucide-react";
-import logoAsset from "@/assets/super-pizza-logo-v2.png.asset.json";
 
-const logo = logoAsset.url;
+
+const logo = "/logo.png";
 
 export const Route = createFileRoute("/")({
   head: () => ({
